@@ -1,5 +1,23 @@
 package hudson.plugins.xvnc;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.StringReader;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.WeakHashMap;
+
+import javax.annotation.CheckForNull;
+
+import org.jenkinsci.Symbol;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.StaplerRequest;
+
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -15,27 +33,11 @@ import hudson.model.TaskListener;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
 import hudson.util.FormValidation;
-
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.WeakHashMap;
-import javax.annotation.CheckForNull;
-
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildWrapper;
 import jenkins.util.BuildListenerAdapter;
 import net.jcip.annotations.GuardedBy;
 import net.sf.json.JSONObject;
-import org.jenkinsci.Symbol;
-
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
 
 /**
  * {@link BuildWrapper} that runs <tt>xvnc</tt>.
@@ -53,6 +55,9 @@ public class Xvnc extends SimpleBuildWrapper {
     @DataBoundSetter
     public Boolean useXauthority = true;
 
+    @DataBoundSetter
+    public String environment;
+    
     private static final String FILENAME_SCREENSHOT = "screenshot.jpg";
 
     @DataBoundConstructor
@@ -156,6 +161,21 @@ public class Xvnc extends SimpleBuildWrapper {
         }
 
         context.env("DISPLAY", ":" + displayNumber);
+        
+        if (environment != null) {
+        	BufferedReader reader = new BufferedReader(new StringReader(environment));
+        	String line = null;
+        	while ((line = reader.readLine()) != null) {
+        		int i = line.indexOf("=");
+            	if (i > 0) {
+        			String key = line.substring(0, i).trim();
+        			String value = line.substring(i+1).trim();
+        			logger.println("Context env: " + key + "=" + value);
+        			context.env(key, value);
+        		}
+        	}
+        }
+        
         context.setDisposer(new DisposerImpl(displayNumber, xauthorityEnv, vncserverCommand, takeScreenshot, xauthority != null ? xauthority.getRemote() : null));
     }
 

@@ -9,4 +9,8 @@
       <f:checkbox default="true"/>
         <label class="attach-previous">${%Create a dedicated Xauthority file per build?}</label>
   </f:entry>
+  
+  <f:entry title="${%Environment}" field="environment">
+    <f:textarea />
+  </f:entry>
 </j:jelly>
