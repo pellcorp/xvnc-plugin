@@ -1,6 +1,7 @@
 package hudson.plugins.xvnc;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.StringReader;
@@ -25,6 +26,7 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Proc;
 import hudson.Util;
+import hudson.XmlFile;
 import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Node;
@@ -360,6 +362,12 @@ public class Xvnc extends SimpleBuildWrapper {
             }
         }
 
+        @Override
+        protected XmlFile getConfigFile() {
+        	// avoids it being saved by scm sync config
+        	return new XmlFile(new File(Jenkins.getInstance().getRootDir(), "xvnc-display-allocator.xml"));
+        }
+        
         @Override
         public String getDisplayName() {
             return Messages.description();
